@@ -1,5 +1,6 @@
 import os
 import win32evtlog
+import xml.etree.ElementTree as ET
 import ctypes
 import sys
 
@@ -22,7 +23,7 @@ def logcollector(file_name):
         )
         # xml namespace, root element has a xmlns definition, so we have to use the namespace
         schemasmc = '{http://schemas.microsoft.com/win/2004/08/events/event}'
-        
+
         while True:
             # Récupère 10 événements à la fois
             events = win32evtlog.EvtNext(query_handle,10)
@@ -33,9 +34,19 @@ def logcollector(file_name):
             for event in events:         
                 # Convertit l'événement en XML pour l'affichage
                 event_xml = win32evtlog.EvtRender(event, win32evtlog.EvtRenderEventXml)
-                #print(event_xml.find(f'.//{schemasmc}EventID').text)
-                print(event_xml)
-                break  # On ne traite qu'un événement pour le moment
+                xml = ET.fromstring(event_xml)
+                #substatus = xml[1][7].text  ????   
+                event_id = xml.find(f'.//{schemasmc}EventID').text
+                computer = xml.find(f'.//{schemasmc}Computer').text
+                channel = xml.find(f'.//{schemasmc}Channel').text
+                execution = xml.find(f'.//{schemasmc}Execution')
+                process_id = execution.get('ProcessID')
+                thread_id = execution.get('ThreadID')
+                time_created = xml.find(f'.//{schemasmc}TimeCreated').get('SystemTime')
+
+                event_data = f'Time: {time_created}, Computer: {computer}, Event Id: {event_id}, Channel: {channel}, Process Id: {process_id}, Thread Id: {thread_id}'
+                print(event_data)
+                #break
 
     else:
         # Si pas admin, relance le script avec les droits admin
