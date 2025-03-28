@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Dashboard Simple sans dépendance externe</title>
+</head>
+<body>
+    <h1>Dashboard sur localhost</h1>
+    <table id="dataTable" border="1" cellpadding="5">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Computer</th>
+                <th>Event Id</th>
+                <th>Channel</th>
+                <th>Process Id</th>
+                <th>Thread Id</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        // Récupérer les données depuis l'endpoint /data
+        fetch('/data')
+          .then(response => response.json())
+          .then(jsonData => {
+              const events = jsonData.events;
+              const tbody = document.querySelector('#dataTable tbody');
+              
+              events.forEach(event => {
+                  const tr = document.createElement('tr');
+
+                  let tdTime = document.createElement('td');
+                  tdTime.textContent = event.time.split('T')[0];  // affiche uniquement la date
+                  
+                  let tdComputer = document.createElement('td');
+                  tdComputer.textContent = event.computer;
+                  
+                  let tdEventId = document.createElement('td');
+                  tdEventId.textContent = event.event_id;
+                  
+                  let tdChannel = document.createElement('td');
+                  tdChannel.textContent = event.channel;
+                  
+                  let tdProcessId = document.createElement('td');
+                  tdProcessId.textContent = event.process_id;
+                  
+                  let tdThreadId = document.createElement('td');
+                  tdThreadId.textContent = event.thread_id;
+                  
+                  tr.appendChild(tdTime);
+                  tr.appendChild(tdComputer);
+                  tr.appendChild(tdEventId);
+                  tr.appendChild(tdChannel);
+                  tr.appendChild(tdProcessId);
+                  tr.appendChild(tdThreadId);
+                  
+                  tbody.appendChild(tr);
+              });
+          })
+          .catch(error => console.error('Erreur lors de la récupération des données:', error));
+    </script>
+</body>
+</html>
