@@ -38,8 +38,12 @@ document.addEventListener("DOMContentLoaded", function() {
       // Exemple de contenu statique "lorem ipsum" avec une indication du log sélectionné
       detailsPanel.innerHTML = `
         <h2>Détails du Log</h2>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur euismod, nisi at ultrices cursus, justo erat scelerisque nulla, non efficitur dui libero vitae urna.</p>
+        <p><strong>Time:</strong> ${log.time}</p>
+        <p><strong>Computer:</strong> ${log.computer}</p>
         <p><strong>Event Id:</strong> ${log.event_id}</p>
+
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur euismod, nisi at ultrices cursus, justo erat scelerisque nulla, non efficitur dui libero vitae urna.</p>
+        
       `;
     }
   
