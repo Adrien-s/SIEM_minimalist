@@ -2,23 +2,12 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8">
-    <title>Dashboard SIEM - Logs (Vanilla JS)</title>
+    <title>Dashboard SIEM - Logs</title>
     <style>
       body {
         font-family: sans-serif;
         margin: 20px;
       }
-      /* Conteneur principal en flex pour table et panneau */
-      #container {
-        display: flex;
-        width: 100%;
-      }
-      /* Zone du tableau */
-      #tableContainer {
-        flex: 1;
-        transition: margin-right 0.3s;
-      }
-      /* Tableau avec coins arrondis */
       table {
         width: 100%;
         border-collapse: separate;
@@ -44,58 +33,44 @@
       tbody tr:last-child td {
         border-bottom: none;
       }
-      /* Indication de la ligne sélectionnée */
+      /* Ligne sélectionnée */
       tr.selected {
         background-color: #e0e0e0;
       }
-      /* Panneau de détails stylisé comme une bulle */
-      #detailsPanel {
-        width: 300px;
-        padding: 16px;
+      /* Style du tiroir */
+      .details-drawer {
         background: #f9f9f9;
         border: 1px solid #ccc;
-        border-radius: 8px;
-        display: none; /* caché par défaut */
-        position: relative;
-        margin-left: 20px;
+        border-top: none;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        padding: 16px;
+        animation: slideDown 0.3s ease-out;
       }
-      /* Flèche pour la bulle de dialogue */
-      #detailsPanel::before {
-        content: "";
-        position: absolute;
-        left: -20px;
-        top: 20px;
-        width: 0;
-        height: 0;
-        border: 10px solid transparent;
-        border-right-color: #f9f9f9;
+      @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
     </style>
   </head>
   <body>
     <h1>Dashboard SIEM - Logs</h1>
-    <div id="container">
-      <div id="tableContainer">
-        <table id="dataTable">
-          <thead>
-            <tr>
-              <th data-field="time">Time</th>
-              <th data-field="computer">Computer</th>
-              <th data-field="event_id">Event Id</th>
-              <th data-field="channel">Channel</th>
-              <th data-field="process_id">Process Id</th>
-              <th data-field="thread_id">Thread Id</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Les lignes seront ajoutées par JavaScript -->
-          </tbody>
-        </table>
-      </div>
-      <div id="detailsPanel">
-        <!-- Le contenu de la bulle sera inséré via JavaScript -->
-      </div>
-    </div>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th data-field="time">Time</th>
+          <th data-field="computer">Computer</th>
+          <th data-field="event_id">Event Id</th>
+          <th data-field="channel">Channel</th>
+          <th data-field="process_id">Process Id</th>
+          <th data-field="thread_id">Thread Id</th>
+          <th data-field="level">Risque</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!--  -->
+      </tbody>
+    </table>
     <script src="main.js"></script>
   </body>
 </html>

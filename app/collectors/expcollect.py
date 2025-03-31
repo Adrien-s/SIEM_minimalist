@@ -29,6 +29,9 @@ def logcollector(file_name):
             for event in events:         
                 event_xml = win32evtlog.EvtRender(event, win32evtlog.EvtRenderEventXml)
                 xml = ET.fromstring(event_xml)
+
+                print(ET.tostring(xml, encoding='unicode'))
+
                 event_id = xml.find(f'.//{schemasmc}EventID').text
                 computer = xml.find(f'.//{schemasmc}Computer').text
                 channel = xml.find(f'.//{schemasmc}Channel').text
@@ -36,7 +39,8 @@ def logcollector(file_name):
                 process_id = execution.get('ProcessID')
                 thread_id = execution.get('ThreadID')
                 time_created = xml.find(f'.//{schemasmc}TimeCreated').get('SystemTime')
-                
+                level = xml.find(f'.//{schemasmc}Level').text
+
                 # Retourner un dictionnaire pour chaque événement
                 event_data = {
                     "time": time_created,
@@ -44,7 +48,8 @@ def logcollector(file_name):
                     "event_id": event_id,
                     "channel": channel,
                     "process_id": process_id,
-                    "thread_id": thread_id
+                    "thread_id": thread_id,
+                    "level": level
                 }
                 event_datas.append(event_data)
                 print(event_data)

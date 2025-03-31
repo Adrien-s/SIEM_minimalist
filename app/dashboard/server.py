@@ -6,7 +6,7 @@ from app.collectors.expcollect import logcollector
 
 PORT = 8000
 
-# Définir le répertoire pour les fichiers (ici, votre dossier template)
+# Définir le répertoire pour les fichiers
 template_dir = os.path.join(os.getcwd(), "app", "dashboard", "template")
 if os.path.isdir(template_dir):
     os.chdir(template_dir)
