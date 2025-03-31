@@ -1,64 +1,101 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Dashboard Simple sans dépendance externe</title>
-</head>
-<body>
-    <h1>Dashboard sur localhost</h1>
-    <table id="dataTable" border="1" cellpadding="5">
-        <thead>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <title>Dashboard SIEM - Logs (Vanilla JS)</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+      }
+      /* Conteneur principal en flex pour table et panneau */
+      #container {
+        display: flex;
+        width: 100%;
+      }
+      /* Zone du tableau */
+      #tableContainer {
+        flex: 1;
+        transition: margin-right 0.3s;
+      }
+      /* Tableau avec coins arrondis */
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      th, td {
+        padding: 8px;
+        border-bottom: 1px solid #ccc;
+        text-align: left;
+      }
+      thead tr th {
+        background-color: #f2f2f2;
+        cursor: pointer;
+        user-select: none;
+        border-bottom: 2px solid #ccc;
+      }
+      th.sorted {
+        background-color: #d3e5ff;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      /* Indication de la ligne sélectionnée */
+      tr.selected {
+        background-color: #e0e0e0;
+      }
+      /* Panneau de détails stylisé comme une bulle */
+      #detailsPanel {
+        width: 300px;
+        padding: 16px;
+        background: #f9f9f9;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        display: none; /* caché par défaut */
+        position: relative;
+        margin-left: 20px;
+      }
+      /* Flèche pour la bulle de dialogue */
+      #detailsPanel::before {
+        content: "";
+        position: absolute;
+        left: -20px;
+        top: 20px;
+        width: 0;
+        height: 0;
+        border: 10px solid transparent;
+        border-right-color: #f9f9f9;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Dashboard SIEM - Logs</h1>
+    <div id="container">
+      <div id="tableContainer">
+        <table id="dataTable">
+          <thead>
             <tr>
-                <th>Time</th>
-                <th>Computer</th>
-                <th>Event Id</th>
-                <th>Channel</th>
-                <th>Process Id</th>
-                <th>Thread Id</th>
+              <th data-field="time">Time</th>
+              <th data-field="computer">Computer</th>
+              <th data-field="event_id">Event Id</th>
+              <th data-field="channel">Channel</th>
+              <th data-field="process_id">Process Id</th>
+              <th data-field="thread_id">Thread Id</th>
             </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    <script>
-        // Récupérer les données depuis l'endpoint /data
-        fetch('/data')
-          .then(response => response.json())
-          .then(jsonData => {
-              const events = jsonData.events;
-              const tbody = document.querySelector('#dataTable tbody');
-              
-              events.forEach(event => {
-                  const tr = document.createElement('tr');
-
-                  let tdTime = document.createElement('td');
-                  tdTime.textContent = event.time.split('T')[0];  // affiche uniquement la date
-                  
-                  let tdComputer = document.createElement('td');
-                  tdComputer.textContent = event.computer;
-                  
-                  let tdEventId = document.createElement('td');
-                  tdEventId.textContent = event.event_id;
-                  
-                  let tdChannel = document.createElement('td');
-                  tdChannel.textContent = event.channel;
-                  
-                  let tdProcessId = document.createElement('td');
-                  tdProcessId.textContent = event.process_id;
-                  
-                  let tdThreadId = document.createElement('td');
-                  tdThreadId.textContent = event.thread_id;
-                  
-                  tr.appendChild(tdTime);
-                  tr.appendChild(tdComputer);
-                  tr.appendChild(tdEventId);
-                  tr.appendChild(tdChannel);
-                  tr.appendChild(tdProcessId);
-                  tr.appendChild(tdThreadId);
-                  
-                  tbody.appendChild(tr);
-              });
-          })
-          .catch(error => console.error('Erreur lors de la récupération des données:', error));
-    </script>
-</body>
+          </thead>
+          <tbody>
+            <!-- Les lignes seront ajoutées par JavaScript -->
+          </tbody>
+        </table>
+      </div>
+      <div id="detailsPanel">
+        <!-- Le contenu de la bulle sera inséré via JavaScript -->
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
 </html>

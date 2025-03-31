@@ -6,7 +6,7 @@ from app.collectors.expcollect import logcollector
 
 PORT = 8000
 
-# Définir le répertoire à partir duquel servir les fichiers
+# Définir le répertoire pour les fichiers (ici, votre dossier template)
 template_dir = os.path.join(os.getcwd(), "app", "dashboard", "template")
 if os.path.isdir(template_dir):
     os.chdir(template_dir)
@@ -25,7 +25,6 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json_data.encode("utf-8"))
         else:
-            # Pour toutes les autres requêtes, on laisse le serveur servir les fichiers depuis le répertoire courant
             return http.server.SimpleHTTPRequestHandler.do_GET(self)
 
 with socketserver.TCPServer(("", PORT), MyHandler) as httpd:

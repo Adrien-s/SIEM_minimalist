@@ -52,7 +52,7 @@ def logcollector(file_name):
         # Si non admin, relance le script avec les droits administrateur
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
         print("Redémarrage en mode administrateur...")
-        event_datas = []  # retourne une liste vide par défaut
+        event_datas = [] 
     return event_datas
 
 
