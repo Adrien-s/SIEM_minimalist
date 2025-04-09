@@ -6,26 +6,37 @@ document.addEventListener("DOMContentLoaded", function() {
     let currentDrawerRow = null;   // Ligne contenant le tiroir actuellement ouvert
     let currentSelectedRow = null; // Ligne actuellement sélectionnée
   
-    // Crée une ligne du tableau pour un log donné
     function createRow(log) {
       const tr = document.createElement("tr");
-      // Liste des champs attendus
-      const fields = ["time", "computer", "event_id", "channel", "process_id", "thread_id", "level"];
-      fields.forEach(field => {
+      // On suppose que log est un tableau. On définit un mapping entre index et label pour plus de clarté
+      const fieldsIndex = {
+        time: 1,
+        computer: 2,
+        event_id: 3,
+        channel: 4,
+        process_id: 5,
+        thread_id: 6,
+        level: 7
+      };
+      
+      Object.keys(fieldsIndex).forEach(field => {
         const td = document.createElement("td");
-        if (field === "time" && log[field]) {
-          td.textContent = log[field].split("T")[0];
-        } else {
-          td.textContent = log[field] || "";
+        let value = log[ fieldsIndex[field] ] || "";
+        if (field === "time" && value) {
+          // Si la valeur est au format ISO, on garde la date seule
+          value = value.split("T")[0];
         }
+        td.textContent = value;
         tr.appendChild(td);
       });
+    
       // Ajout de l'écouteur sur la ligne
       tr.addEventListener("click", function() {
         handleRowClick(tr, log);
       });
       return tr;
     }
+    
   
     // Affiche ou masque le tiroir sous la ligne cliquée
     function handleRowClick(rowElement, log) {

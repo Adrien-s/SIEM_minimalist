@@ -1,10 +1,10 @@
+# Dans app/collectors/expcollect.py
 import os
 import win32evtlog
 import xml.etree.ElementTree as ET
 import ctypes
 import sys
-
-# Attention : pour utiliser ce code, vous devez avoir les droits administrateur
+from data.database import insert_log  # pas d'init_db ici
 
 def is_admin():
     try:
@@ -13,7 +13,7 @@ def is_admin():
         print("Erreur lors de la vérification des droits admin :", e)
         return False
 
-def logcollector(file_name):
+def logcollector(file_name, db_conn):
     if is_admin():
         print("Exécution en mode admin")
         query_handle = win32evtlog.EvtQuery(file_name,
@@ -29,19 +29,16 @@ def logcollector(file_name):
             for event in events:         
                 event_xml = win32evtlog.EvtRender(event, win32evtlog.EvtRenderEventXml)
                 xml = ET.fromstring(event_xml)
-
-                print(ET.tostring(xml, encoding='unicode'))
-
-                event_id = xml.find(f'.//{schemasmc}EventID').text
-                computer = xml.find(f'.//{schemasmc}Computer').text
-                channel = xml.find(f'.//{schemasmc}Channel').text
-                execution = xml.find(f'.//{schemasmc}Execution')
+                # Extraction des données
+                event_id   = xml.find(f'.//{schemasmc}EventID').text
+                computer   = xml.find(f'.//{schemasmc}Computer').text
+                channel    = xml.find(f'.//{schemasmc}Channel').text
+                execution  = xml.find(f'.//{schemasmc}Execution')
                 process_id = execution.get('ProcessID')
-                thread_id = execution.get('ThreadID')
+                thread_id  = execution.get('ThreadID')
                 time_created = xml.find(f'.//{schemasmc}TimeCreated').get('SystemTime')
-                level = xml.find(f'.//{schemasmc}Level').text
+                level      = xml.find(f'.//{schemasmc}Level').text
 
-                # Retourner un dictionnaire pour chaque événement
                 event_data = {
                     "time": time_created,
                     "computer": computer,
@@ -52,15 +49,11 @@ def logcollector(file_name):
                     "level": level
                 }
                 event_datas.append(event_data)
+                # Insertion du log dans la base en utilisant la connexion passée en argument
+                insert_log(db_conn, event_data)
                 print(event_data)
     else:    
-        # Si non admin, relance le script avec les droits administrateur
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
         print("Redémarrage en mode administrateur...")
         event_datas = [] 
     return event_datas
-
-
-
-if __name__ == '__main__':
-    logcollector("C:\Windows\System32\winevt\Logs\Application.evtx")
