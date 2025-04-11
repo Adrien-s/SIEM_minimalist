@@ -7,6 +7,7 @@ from dashboard.server import run_server
 
 # Chemin vers le fichier d'événements Windows (attention aux échappements)
 LOG_FILE_PATH = r"C:\Windows\System32\winevt\Logs\Application.evtx"
+
 # Chemin de la base de données
 DB_PATH = "logs.db"
 
@@ -19,14 +20,12 @@ def start_log_collection(db_conn):
         logging.error("Erreur lors de la collecte des logs : %s", e)
 
 def main():
-    # Configuration du logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
     logging.info("Démarrage de l'application SIEM.")
 
-    # Supprimer l'ancienne base de données si elle existe
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
         logging.info("Ancienne base de données supprimée.")

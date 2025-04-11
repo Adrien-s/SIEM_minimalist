@@ -1,13 +1,47 @@
 <!DOCTYPE html>
 <html lang="fr">
   <head>
-    <meta charset="UTF-8">
-    <title>Dashboard SIEM - Logs</title>
+    <meta charset="UTF-8" />
+    <title>Dashboard SIEM</title>
     <style>
       body {
         font-family: sans-serif;
         margin: 20px;
       }
+      /* Barre d'onglets */
+      .nav-tabs {
+        display: flex;
+        margin-bottom: 20px;
+      }
+      .nav-tabs button {
+        background-color: #f2f2f2;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        margin-right: 5px;
+      }
+      .nav-tabs button.active {
+        background-color: #d3e5ff;
+        font-weight: bold;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      /* Contrôles de pagination */
+      #paginationControls {
+        margin-bottom: 10px;
+      }
+      #paginationControls label,
+      #paginationControls select,
+      #paginationControls button,
+      #paginationControls span {
+        margin-right: 10px;
+        font-size: 14px;
+      }
+      /* Styles du tableau */
       table {
         width: 100%;
         border-collapse: separate;
@@ -27,17 +61,10 @@
         user-select: none;
         border-bottom: 2px solid #ccc;
       }
-      th.sorted {
-        background-color: #d3e5ff;
-      }
-      tbody tr:last-child td {
-        border-bottom: none;
-      }
-      /* Ligne sélectionnée */
       tr.selected {
         background-color: #e0e0e0;
       }
-      /* Style du tiroir */
+      /* Style du tiroir d'affichage d'un détail */
       .details-drawer {
         background: #f9f9f9;
         border: 1px solid #ccc;
@@ -51,26 +78,93 @@
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
       }
+      /* Styles pour la section Analyses */
+      .cards-container {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .card {
+        flex: 1 1 300px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 16px;
+      }
+      .chart-container {
+        margin-bottom: 20px;
+      }
     </style>
   </head>
   <body>
-    <h1>Dashboard SIEM - Logs</h1>
-    <table id="dataTable">
-      <thead>
-        <tr>
-          <th data-field="time">Time</th>
-          <th data-field="computer">Computer</th>
-          <th data-field="event_id">Event Id</th>
-          <th data-field="channel">Channel</th>
-          <th data-field="process_id">Process Id</th>
-          <th data-field="thread_id">Thread Id</th>
-          <th data-field="level">Risque</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!--  -->
-      </tbody>
-    </table>
+    <h1>Dashboard SIEM</h1>
+    
+    <!-- Barre de navigation -->
+    <div class="nav-tabs">
+      <button class="tab-button active" data-tab="logsTab">Logs</button>
+      <button class="tab-button" data-tab="analyticsTab">Analyses</button>
+    </div>
+    
+    <!-- Contenu de l'onglet Logs -->
+    <div id="logsTab" class="tab-content active">
+      <h2>Logs</h2>
+      <!-- Contrôles de pagination -->
+      <div id="paginationControls">
+        <label for="limitSelect">Lignes par page :</label>
+        <select id="limitSelect">
+          <option value="100">100</option>
+          <option value="500">500</option>
+          <option value="1000">1000</option>
+          <option value="5000">5000</option>
+        </select>
+        <button id="prevPage">Précédent</button>
+        <button id="nextPage">Suivant</button>
+        <span id="pageDisplay"></span>
+      </div>
+      <!-- Tableau des logs -->
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th data-field="time">Time</th>
+            <th data-field="computer">Computer</th>
+            <th data-field="event_id">Event Id</th>
+            <th data-field="channel">Channel</th>
+            <th data-field="process_id">Process Id</th>
+            <th data-field="thread_id">Thread Id</th>
+            <th data-field="level">Risque</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- main.js -->
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Contenu de l'onglet Analyses -->
+    <div id="analyticsTab" class="tab-content">
+      <h2>Analyses</h2>
+      <!-- Cartes statistiques -->
+      <div class="cards-container">
+        <div class="card">
+          <h3>Host events</h3>
+          <p id="hostEventsCount">--</p>
+        </div>
+        <div class="card">
+          <h3>Network events</h3>
+          <p id="networkEventsCount">--</p>
+        </div>
+      </div>
+      <!-- Graphique Alert Trend -->
+      <div class="chart-container">
+        <canvas id="alertTrendChart"></canvas>
+      </div>
+      <!-- Graphique Stacked Bar pour Events -->
+      <div class="chart-container">
+        <canvas id="eventsChart"></canvas>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- main.js -->
     <script src="main.js"></script>
   </body>
 </html>

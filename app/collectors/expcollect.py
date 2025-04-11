@@ -49,9 +49,8 @@ def logcollector(file_name, db_conn):
                     "level": level
                 }
                 event_datas.append(event_data)
-                # Insertion du log dans la base en utilisant la connexion passée en argument
                 insert_log(db_conn, event_data)
-                print(event_data)
+                #print(event_data)
     else:    
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
         print("Redémarrage en mode administrateur...")

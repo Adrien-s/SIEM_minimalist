@@ -2,12 +2,13 @@ import http.server
 import socketserver
 import json
 import os
-from data import database  # import de vos fonctions de gestion de DB
+from urllib.parse import urlparse, parse_qs
+from data import database
 
 def run_server(db_conn):
     PORT = 8000
 
-    # Définir le répertoire pour les fichiers statiques du dashboard
+    # Définir le répertoire pour servir les fichiers statiques du dashboard
     template_dir = os.path.join(os.getcwd(), "dashboard", "template")
     if os.path.isdir(template_dir):
         os.chdir(template_dir)
@@ -17,9 +18,20 @@ def run_server(db_conn):
 
     class MyHandler(http.server.SimpleHTTPRequestHandler):
         def do_GET(self):
-            if self.path.startswith('/data'):
-                # Récupération des logs depuis la base SQLite via la connexion passée
-                logs = database.query_logs(db_conn)
+            parsed_url = urlparse(self.path)
+            if parsed_url.path == '/data':
+                qs = parse_qs(parsed_url.query)
+                try:
+                    limit = int(qs.get("limit", [100])[0])
+                except ValueError:
+                    limit = 100
+                try:
+                    offset = int(qs.get("offset", [0])[0])
+                except ValueError:
+                    offset = 0
+
+                # Récupération des logs avec pagination
+                logs = database.query_logs(db_conn, limit=limit, offset=offset)
                 response = {"events": logs}
                 json_data = json.dumps(response)
                 self.send_response(200)
@@ -34,5 +46,4 @@ def run_server(db_conn):
         httpd.serve_forever()
 
 if __name__ == '__main__':
-    # Pour tester en mode autonome, vous pouvez créer la connexion ici :
     run_server(database.init_db())
