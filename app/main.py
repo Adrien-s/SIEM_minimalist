@@ -1,46 +1,57 @@
+#A mettre en main.py une fois fonctionnel
 import os
-import threading
+import signal
+import sys
 import logging
-from collectors.expcollect import logcollector
-from data import database
+from queue import Queue
+
+from data.database import init_db
+from data.backlog_agent   import BacklogAgent
+from data.tail_agent      import TailAgent
+from data.db_writer  import DBWriter
 from dashboard.server import run_server
 
-# Chemin vers le fichier d'événements Windows (attention aux échappements)
-LOG_FILE_PATH = r"C:\Windows\System32\winevt\Logs\Application.evtx"
+#Nom du canal Windows à surveiller
+LOG_CHANNEL = "Security"
 
-# Chemin de la base de données
+#Chemin vers la base SQLite
 DB_PATH = "logs.db"
 
-def start_log_collection(db_conn):
-    logging.info("Lancement de la collecte des logs.")
-    try:
-        logs = logcollector(LOG_FILE_PATH, db_conn)  # en passant la connexion à la DB
-        logging.info("Collecte terminée : %d logs collectés.", len(logs))
-    except Exception as e:
-        logging.error("Erreur lors de la collecte des logs : %s", e)
-
 def main():
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s'
-    )
-    logging.info("Démarrage de l'application SIEM.")
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s - %(levelname)s - %(message)s")
 
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-        logging.info("Ancienne base de données supprimée.")
-    else:
-        logging.info("Aucune base de données existante trouvée.")
+    # recrée la base
+    if os.path.exists(DB_PATH): os.remove(DB_PATH)
+    db_conn = init_db(DB_PATH)
 
-    # Créer une nouvelle connexion à la base de données
-    db_conn = database.init_db(DB_PATH)
+    event_queue = Queue()
 
-    # Lancer la collecte des logs dans un thread séparé en passant la connexion
-    collector_thread = threading.Thread(target=start_log_collection, args=(db_conn,), daemon=True)
-    collector_thread.start()
+    #Démarre le writer
+    writer = DBWriter(queue=event_queue, db_conn=db_conn,
+                      batch_size=100, flush_interval=0.5)
+    writer.start()
 
-    # Démarrer le serveur du dashboard en passant la même connexion
-    logging.info("Démarrage du serveur dashboard.")
+    #Démarre l’agent historique
+    backlog = BacklogAgent(channel=LOG_CHANNEL, queue=event_queue,
+                           chunk_size=200, pause=0.2)
+    backlog.start()
+
+    #Démarre l’agent tail pour les nouveaux logs
+    tail = TailAgent(channel=LOG_CHANNEL, queue=event_queue,
+                     poll_interval=0.5)
+    tail.start()
+
+    #arrêt propre ctrl+c
+    def shutdown(sig, frame):
+        logging.info("Arrêt demandé…")
+        backlog.join(0)  # on laisse backlog finir son historique
+        tail.stop();    tail.join()
+        writer.stop();  writer.join()
+        sys.exit(0)
+    signal.signal(signal.SIGINT, shutdown)
+
+    # lance le dashboard
     run_server(db_conn)
 
 if __name__ == "__main__":

@@ -30,8 +30,17 @@ def run_server(db_conn):
                 except ValueError:
                     offset = 0
 
+                search_field = qs.get('searchField', [None])[0]
+                search_value = qs.get('searchValue', [None])[0]
+
                 # Récupération des logs avec pagination
-                logs = database.query_logs(db_conn, limit=limit, offset=offset)
+                filters = {}
+                if search_field and search_value:
+                    # Pour le champ 'time' ou 'event_id', comme ils sont stockés en TEXT on pourra faire un LIKE
+                    filters[search_field] = f"%{search_value}%"
+                    
+                # On modifie query_logs pour traiter LIKE si la valeur contient '%' ou '=' sinon exact
+                logs = database.query_logs(db_conn, limit=limit, offset=offset, **filters)
                 response = {"events": logs}
                 json_data = json.dumps(response)
                 self.send_response(200)
