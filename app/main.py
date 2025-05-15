@@ -11,8 +11,8 @@ from data.tail_agent      import TailAgent
 from data.db_writer  import DBWriter
 from dashboard.server import run_server
 
-#Nom du canal Windows à surveiller
-LOG_CHANNEL = "Security"
+#Nom des canal Windows à surveiller
+CHANNELS = ["Security", "Application"]  
 
 #Chemin vers la base SQLite
 DB_PATH = "logs.db"
@@ -32,22 +32,44 @@ def main():
                       batch_size=100, flush_interval=0.5)
     writer.start()
 
-    #Démarre l’agent historique
-    backlog = BacklogAgent(channel=LOG_CHANNEL, queue=event_queue,
-                           chunk_size=200, pause=0.2)
-    backlog.start()
+    backlog_agents = []
+    tail_agents    = []
+    for chan in CHANNELS:
+        # Agent historique
+        ba = BacklogAgent(
+            channel=chan,
+            queue=event_queue,
+            chunk_size=200,
+            pause=0.2
+        )
+        ba.start()
+        backlog_agents.append(ba)
+        logging.info("BacklogAgent démarré sur canal %s.", chan)
 
-    #Démarre l’agent tail pour les nouveaux logs
-    tail = TailAgent(channel=LOG_CHANNEL, queue=event_queue,
-                     poll_interval=0.5)
-    tail.start()
+        # Agent tail 
+        ta = TailAgent(
+            channel=chan,
+            queue=event_queue,
+            poll_interval=0.5
+        )
+        ta.start()
+        tail_agents.append(ta)
+        logging.info("TailAgent démarré sur canal %s.", chan)
 
     #arrêt propre ctrl+c
     def shutdown(sig, frame):
         logging.info("Arrêt demandé…")
-        backlog.join(0)  # on laisse backlog finir son historique
-        tail.stop();    tail.join()
-        writer.stop();  writer.join()
+        # Laisser les backlogAgents finir au plus vite
+        for ba in backlog_agents:
+            ba.join(0)
+            
+        # Stop et join des tailAgents 
+        for ta in tail_agents:
+            ta.stop()
+            ta.join()
+        # Stop et join du writer
+        writer.stop()
+        writer.join()
         sys.exit(0)
     signal.signal(signal.SIGINT, shutdown)
 
