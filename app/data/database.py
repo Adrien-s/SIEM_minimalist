@@ -2,13 +2,12 @@ import sqlite3
 
 def init_db(db_path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(db_path, check_same_thread=False)
-
-    #Active le WAL (Write-Ahead Logging)
+    # optimisations SQLite
     conn.execute("PRAGMA journal_mode = WAL;")
 
     #Réduit la synchronisation disque pour moins de fsync
     conn.execute("PRAGMA synchronous = NORMAL;")
-    
+    # table logs
     conn.execute("""
       CREATE TABLE IF NOT EXISTS logs (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,24 +21,18 @@ def init_db(db_path: str) -> sqlite3.Connection:
         message     TEXT
       );
     """)
-
-
-    #Crée les index pour accélérer les filtres + tris
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_logs_time      ON logs(time);")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_logs_event_id  ON logs(event_id);")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_logs_level     ON logs(level);")
-    # 4) Nouvelle table “rules”
+    # table rules
     conn.execute("""
       CREATE TABLE IF NOT EXISTS rules (
         id           INTEGER PRIMARY KEY AUTOINCREMENT,
-        channel      TEXT    NOT NULL,
+        channel      TEXT NOT NULL,
         event_id     INTEGER NOT NULL,
         threshold    INTEGER NOT NULL,
         window_min   INTEGER NOT NULL,
         last_checked TEXT
       );
     """)
-
+    # table alerts
     conn.execute("""
       CREATE TABLE IF NOT EXISTS alerts (
         id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,6 +41,27 @@ def init_db(db_path: str) -> sqlite3.Connection:
         count        INTEGER NOT NULL
       );
     """)
+    # table event_definitions
+    conn.execute("""
+      CREATE TABLE IF NOT EXISTS event_definitions (
+        event_id    INTEGER PRIMARY KEY,
+        name        TEXT,
+        description TEXT
+      );
+    """)
+    # seed definitions (ajoute ou ignore si déjà présent)
+    definitions = [
+      (5379, 'Credential Manager credentials read',
+            'Généré lorsqu’une lecture des identifiants du Gestionnaire d’identifiants Windows est effectuée.'),
+      (4624, 'Successful account logon',
+            'Indique une ouverture de session réussie.'),
+      # … ajouter d’autres Event IDs utiles
+    ]
+    conn.executemany("""
+      INSERT OR IGNORE INTO event_definitions(event_id, name, description)
+      VALUES (?, ?, ?)
+    """, definitions)
+
     conn.commit()
     return conn
 

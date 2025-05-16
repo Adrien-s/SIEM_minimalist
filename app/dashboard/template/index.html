@@ -235,6 +235,44 @@
       font-size: 0.9rem;
       font-weight: bold;
     }
+
+    .detail-row td {
+      background: #2f2f4f;
+      padding: 0.75rem 1rem;
+      font-style: italic;
+      color: #ccc;
+    }
+
+    .detail-row {
+      display: table-row;
+    }
+
+    .detail-row td {
+      cursor: default;
+    }
+
+    .detail-row td details {
+      background: #2f2f4f;
+      border-radius: 4px;
+      padding: .5rem;
+    }
+
+    .detail-row td summary {
+      cursor: pointer;
+      font-size: .95rem;
+    }
+
+    .detail-row td ul li {
+      margin: .25rem 0;
+      font-size: .9rem;
+    }
+
+
+    @media (max-width: 600px) {
+      .charts {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 
@@ -399,6 +437,14 @@
 
     // --- Logs ---
     let page = 1, limit = 100, currentSearchField = null, currentSearchValue = null;
+    let eventDefs = {};
+    async function loadDefinitions() {
+      const res = await fetch('/definitions');
+      if (!res.ok) return;
+      const defs = await res.json();
+      defs.forEach(d => eventDefs[d.event_id] = d);
+    }
+    loadDefinitions();
     async function fetchLogs() {
       const off = (page - 1) * limit;
       const params = new URLSearchParams({ limit, offset: off });
@@ -415,11 +461,56 @@
       const tbody = document.getElementById('logsBody'); tbody.innerHTML = '';
       data.forEach(log => {
         const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
         tr.innerHTML = `<td>${new Date(log.time).toLocaleString()}</td><td>${log.computer}</td><td>${log.event_id}</td><td>${log.channel}</td><td>${log.level}</td>`;
+
+        tr.onclick = () => {
+          // Ferme toute ligne de détail ouverte
+          const open = document.querySelector('.detail-row');
+          if (open) {
+            // Si c’est la même ligne, on ne ré-ouvre pas
+            if (open.previousElementSibling === tr) {
+              open.remove();
+              return;
+            }
+            open.remove();
+          }
+          //Ouvre la nouvelle ligne de détail
+          const detail = document.createElement('tr');
+          detail.className = 'detail-row';
+          const td = document.createElement('td');
+          td.colSpan = 5;  // nombre de colonnes
+          td.innerHTML = `
+        
+          <details open>
+            <summary><strong>Détails de l'événement</strong></summary>
+            <ul style="margin:.5rem 0 0 1rem; list-style: disc;">
+              <li><strong>Time :</strong> ${new Date(log.time).toLocaleString()}</li>
+              <li><strong>Host :</strong> ${log.computer}</li>
+              <li><strong>Event ID :</strong> ${log.event_id}</li>
+              <li><strong>Nom (MS) :</strong> ${eventDefs[log.event_id]?.name || 'Inconnu'}</li>
+              <li><strong>Description (MS) :</strong> ${eventDefs[log.event_id]?.description || '–'}</li>
+              <li>
+                <a href="https://learn.microsoft.com/windows/security/threat-protection/auditing/event-${log.event_id}"
+                  target="_blank" style="color:var(--accent);">
+                  Voir la documentation Microsoft
+                </a>
+              </li>
+              <li><strong>Channel :</strong> ${log.channel}</li>
+              <li><strong>Level :</strong> ${log.level}</li>
+              <li><strong>Message :</strong> ${log.message || '–'}</li>
+            </ul>
+          </details>
+        `;
+
+          detail.appendChild(td);
+          tr.parentNode.insertBefore(detail, tr.nextSibling);
+        };
         tbody.appendChild(tr);
       });
       document.getElementById('pageInfo').textContent = `Page ${page}`;
     }
+
     document.getElementById('prevPage').onclick = () => { if (page > 1) { page--; renderLogs(); } };
     document.getElementById('nextPage').onclick = () => { page++; renderLogs(); };
     document.getElementById('searchBtn').onclick = () => {
@@ -440,6 +531,18 @@
       alerts.forEach(a => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${a.rule_id}</td><td>${a.channel}</td><td>${a.event_id}</td><td>${a.count}</td><td>${new Date(a.triggered_at).toLocaleString()}</td>`;
+        tr.style.cursor = 'pointer';
+        tr.title = 'Afficher les logs correspondants';
+        tr.onclick = () => {
+          showSection('Logs');
+          document.getElementById('searchField').value = 'event_id';
+          document.getElementById('searchInput').value = a.event_id;
+          currentSearchField = 'event_id';
+          currentSearchValue = a.event_id;
+          page = 1;
+          renderLogs();
+        };
+
         tbody.appendChild(tr);
       });
     }

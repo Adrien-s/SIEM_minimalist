@@ -5,6 +5,7 @@ import os
 from urllib.parse import urlparse, parse_qs
 from data import database
 from data.rules_service    import list_rules, add_rule, update_rule, delete_rule
+from data.event_service    import list_event_definitions
 from data.database import init_db
 
 def run_server(db_conn):
@@ -71,6 +72,13 @@ def run_server(db_conn):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps(rows).encode())
+            
+            elif parsed_url.path == '/definitions':
+                defs = list_event_definitions(db_conn)
+                self.send_response(200)
+                self.send_header('Content-Type','application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(defs).encode())
                 
                 
             else:
