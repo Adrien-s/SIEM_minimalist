@@ -4,6 +4,8 @@ import json
 import os
 from urllib.parse import urlparse, parse_qs
 from data import database
+from data.rules_service    import list_rules, add_rule, update_rule, delete_rule
+from data.database import init_db
 
 def run_server(db_conn):
     PORT = 8000
@@ -36,7 +38,7 @@ def run_server(db_conn):
                 # Récupération des logs avec pagination
                 filters = {}
                 if search_field and search_value:
-                    # Pour le champ 'time' ou 'event_id', comme ils sont stockés en TEXT on pourra faire un LIKE
+                    #
                     filters[search_field] = f"%{search_value}%"
                     
                 # On modifie query_logs pour traiter LIKE si la valeur contient '%' ou '=' sinon exact
@@ -47,8 +49,79 @@ def run_server(db_conn):
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(json_data.encode("utf-8"))
+
+            elif parsed_url.path == '/rules':
+                rules = list_rules(db_conn)
+                self.send_response(200)
+                self.send_header('Content-Type','application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(rules).encode())
+            
+            elif parsed_url.path == '/alerts':
+                # jointure pour avoir channel et event_id depuis rules
+                cur = db_conn.execute("""
+                    SELECT a.id, a.rule_id, r.channel, r.event_id, a.count, a.triggered_at
+                    FROM alerts a
+                    JOIN rules  r ON a.rule_id = r.id
+                    ORDER BY a.id DESC
+                """)
+                cols = [c[0] for c in cur.description]
+                rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(rows).encode())
+                
+                
             else:
                 return http.server.SimpleHTTPRequestHandler.do_GET(self)
+        
+        def do_POST(self):
+            url = urlparse(self.path)
+            if url.path == '/rules':
+                length = int(self.headers.get('Content-Length', 0))
+                payload = json.loads(self.rfile.read(length))
+                # payload doit contenir {id?, channel, event_id, threshold, window_min}
+                if 'id' in payload:
+                    update_rule(
+                        db_conn,
+                        payload['id'],
+                        payload['channel'],
+                        payload['event_id'],
+                        payload['threshold'],
+                        payload['window_min']
+                    )
+                else:
+                    add_rule(
+                        db_conn,
+                        payload['channel'],
+                        payload['event_id'],
+                        payload['threshold'],
+                        payload['window_min']
+                    )
+                self.send_response(204)
+                self.end_headers()
+                return
+            else:
+                return super().do_POST()
+
+        def do_DELETE(self):
+            url = urlparse(self.path)
+            if url.path == '/rules':
+                qs = parse_qs(url.query)
+                rid_str = qs.get('id', [None])[0]
+                try:
+                    rid = int(rid_str)
+                except (TypeError, ValueError):
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(b'Invalid rule id')
+                    return
+                delete_rule(db_conn, rid)
+                self.send_response(204)
+                self.end_headers()
+                return
+            return super().do_DELETE()
 
     with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
         print("Serving at port", PORT)

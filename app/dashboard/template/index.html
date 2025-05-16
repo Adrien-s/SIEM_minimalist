@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,9 +12,16 @@
       --accent: #4e84f7;
       --card-bg: #2a2a3f;
       --table-bg: #2a2a3f;
+      --toast-bg: #d32f2f;
       --hover-bg: #3a3a55;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Segoe UI', sans-serif;
       background: var(--bg);
@@ -22,6 +30,7 @@
       display: flex;
       flex-direction: column;
     }
+
     header {
       background: var(--card-bg);
       padding: 1rem;
@@ -29,7 +38,12 @@
       align-items: center;
       border-bottom: 1px solid #333;
     }
-    header h1 { flex: 1; font-size: 1.5rem; }
+
+    header h1 {
+      flex: 1;
+      font-size: 1.5rem;
+    }
+
     nav button {
       background: transparent;
       border: none;
@@ -39,10 +53,61 @@
       font-size: 1rem;
       opacity: 0.7;
     }
+
     nav button.active,
-    nav button:hover { opacity: 1; color: var(--accent); }
-    main { flex: 1; padding: 1rem; }
-    .hidden { display: none; }
+    nav button:hover {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    #alertsBadge {
+      background: var(--toast-bg);
+      color: var(--toast-fg);
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.75rem;
+      position: absolute;
+      top: 0;
+      right: -10px;
+      display: none;
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Controls */
+    .controls {
+      margin: 1rem 0;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .controls button,
+    .controls select,
+    .controls input {
+      background: var(--card-bg);
+      border: none;
+      color: var(--fg);
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .controls input,
+    .controls select {
+      flex: 1;
+      border: 1px solid #555;
+    }
+
     /* Tables */
     table {
       width: 100%;
@@ -50,74 +115,147 @@
       background: var(--table-bg);
       border-radius: 8px;
       overflow: hidden;
+      margin-top: 1rem;
     }
-    th, td {
-      padding: 0.75rem 1rem;
+
+    th,
+    td {
+      padding: 0.5rem 0.75rem;
       text-align: left;
+      font-size: 0.9rem;
     }
-    thead { background: var(--card-bg); }
-    thead th { cursor: pointer; }
-    tbody tr:nth-child(even) { background: var(--card-bg); }
-    tbody tr:hover { background: var(--hover-bg); }
+
+    thead {
+      background: var(--card-bg);
+    }
+
+    tbody tr:nth-child(even) {
+      background: var(--card-bg);
+    }
+
+    tbody tr:hover {
+      background: var(--hover-bg);
+    }
+
     /* Cards */
-    .cards { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .cards {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
     .card {
       background: var(--card-bg);
-      padding: 1rem;
+      padding: 0.75rem;
       border-radius: 8px;
-      flex: 1 1 200px;
+      flex: 1 1 150px;
       text-align: center;
     }
-    .card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+
+    .card h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .card p {
+      font-size: 1.25rem;
+      margin: 0;
+    }
+
     /* Charts */
-    .charts { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
-    canvas { background: var(--card-bg); border-radius: 8px; }
-    /* Pagination & Search */
-    .pagination, #searchControls { margin: 1rem 0; display: flex; gap: 0.5rem; align-items: center; }
-    .pagination button, #searchControls button {
+    .charts {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .chart-container {
       background: var(--card-bg);
+      border-radius: 8px;
+      padding: 0.5rem;
+    }
+
+    .chart-container canvas {
+      width: 100%;
+      height: 200px;
+    }
+
+    /* Form rules */
+    .form-group {
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+    }
+
+    .rules-list {
+      margin-top: 1rem;
+    }
+
+    .rule-item {
+      background: var(--table-bg);
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .rule-item button {
+      background: transparent;
       border: none;
-      color: var(--fg);
-      padding: 0.5rem 0.75rem;
-      border-radius: 4px;
+      color: #f44;
       cursor: pointer;
+      font-size: 1rem;
     }
-    .pagination span { margin: 0 0.5rem; }
-    #searchControls input {
-      flex: 1;
-      padding: 0.5rem;
-      border-radius: 4px;
-      border: 1px solid #555;
-      background: var(--table-bg);
-      color: var(--fg);
+
+    #toastContainer {
+      position: absolute;
+      top: calc(1rem + 3.5rem);
+      right: 1rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
-    #searchControls select {
-      padding: 0.5rem;
+
+    .toast {
+      background: var(--toast-bg);
+      color: var(--toast-fg);
+      padding: 0.75rem 1rem;
       border-radius: 4px;
-      border: 1px solid #555;
-      background: var(--table-bg);
-      color: var(--fg);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+      font-size: 0.9rem;
+      font-weight: bold;
     }
   </style>
 </head>
+
 <body>
   <header>
     <h1>SIEM Dashboard</h1>
     <nav>
       <button id="btnLogs" class="active">Logs</button>
       <button id="btnAnalytics">Analyses</button>
+      <button id="btnRules">Règles</button>
     </nav>
   </header>
   <main>
+    <!-- Section Logs -->
     <section id="sectionLogs">
-      <div class="pagination">
+      <div class="controls">
         <button id="prevPage">« Prev</button>
         <span id="pageInfo">Page 1</span>
         <button id="nextPage">Next »</button>
       </div>
-      <!-- Barre de recherche -->
-      <div id="searchControls">
-        <label for="searchField">Recherche sur :</label>
+      <div class="controls">
         <select id="searchField">
           <option value="time">Time</option>
           <option value="computer">Host</option>
@@ -126,8 +264,8 @@
           <option value="level">Risk</option>
         </select>
         <input id="searchInput" type="text" placeholder="Terme à rechercher…" />
-        <button id="searchBtn">🔍</button>
-        <button id="clearSearchBtn">✖️</button>
+        <button id="searchBtn">🔍︎</button>
+        <button id="clearSearchBtn">✕</button>
       </div>
       <table>
         <thead>
@@ -142,59 +280,125 @@
         <tbody id="logsBody"></tbody>
       </table>
     </section>
+
+    <!-- Section Analytics -->
     <section id="sectionAnalytics" class="hidden">
       <div class="cards">
-        <div class="card"><h3>Total Logs</h3><p id="totalLogs">--</p></div>
-        <div class="card"><h3>Error Count</h3><p id="errorCount">--</p></div>
-        <div class="card"><h3>Warning Count</h3><p id="warnCount">--</p></div>
+        <div class="card">
+          <h3>Total Logs</h3>
+          <p id="totalLogs">--</p>
+        </div>
+        <div class="card">
+          <h3>Error Count</h3>
+          <p id="errorCount">--</p>
+        </div>
+        <div class="card">
+          <h3>Warning Count</h3>
+          <p id="warnCount">--</p>
+        </div>
       </div>
       <div class="charts">
-        <canvas id="trendChart"></canvas>
-        <canvas id="barChart"></canvas>
+        <div class="chart-container"><canvas id="trendChart"></canvas></div>
+        <div class="chart-container"><canvas id="barChart"></canvas></div>
       </div>
+      <h2 style="margin-top:1rem; font-size:1.2rem;">Règles déclenchées</h2>
+      <table id="alertsTable">
+        <thead>
+          <tr>
+            <th>Rule ID</th>
+            <th>Canal</th>
+            <th>Event ID</th>
+            <th>Count</th>
+            <th>Heure</th>
+          </tr>
+        </thead>
+        <tbody id="alertsBody"></tbody>
+      </table>
+    </section>
+
+    <!-- Section Rules -->
+    <section id="sectionRules" class="hidden">
+      <h2>Gestion des règles de détection</h2>
+      <form id="ruleForm">
+        <div class="form-group">
+          <label for="ruleChannel">Canal</label>
+          <select id="ruleChannel">
+            <option value="Security">Security</option>
+            <option value="Application">Application</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ruleEventId">Event ID</label>
+          <input id="ruleEventId" type="number" placeholder="Ex: 4567" required />
+        </div>
+        <div class="form-group">
+          <label for="ruleThreshold">Seuil (nombre d'occurrences)</label>
+          <input id="ruleThreshold" type="number" placeholder="Ex: 5" required />
+        </div>
+        <div class="form-group">
+          <label for="ruleWindow">Fenêtre (minutes)</label>
+          <input id="ruleWindow" type="number" placeholder="Ex: 10" required />
+        </div>
+        <button type="submit">Ajouter / Modifier la règle</button>
+      </form>
+      <div class="rules-list" id="rulesList"></div>
     </section>
   </main>
 
+
+  <div id="toastContainer"></div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    // Navigation
     const btnLogs = document.getElementById('btnLogs');
     const btnAnalytics = document.getElementById('btnAnalytics');
+    const btnRules = document.getElementById('btnRules');
     const sectionLogs = document.getElementById('sectionLogs');
     const sectionAnalytics = document.getElementById('sectionAnalytics');
-    let page = 1, limit = 100;
+    const sectionRules = document.getElementById('sectionRules');
+    const sections = { Logs: sectionLogs, Analyses: sectionAnalytics, Règles: sectionRules };
+    const buttons = { Logs: btnLogs, Analyses: btnAnalytics, Règles: btnRules };
+    function showSection(name) {
+      Object.values(sections).forEach(s => s.classList.add('hidden'));
+      Object.values(buttons).forEach(b => b.classList.remove('active'));
+      buttons[name].classList.add('active');
+      sections[name].classList.remove('hidden');
+      if (name === 'Analyses') loadAnalytics();
+      if (name === 'Logs') renderLogs();
+      if (name === 'Règles') loadRules();
+    }
+    btnLogs.onclick = () => showSection('Logs');
+    btnAnalytics.onclick = () => showSection('Analyses');
+    btnRules.onclick = () => showSection('Règles');
 
-    // Recherche
-    const searchField      = document.getElementById('searchField');
-    const searchInput      = document.getElementById('searchInput');
-    const searchBtn        = document.getElementById('searchBtn');
-    const clearSearchBtn   = document.getElementById('clearSearchBtn');
-    let currentSearchField = null;
-    let currentSearchValue = null;
+    const toastContainer = document.getElementById('toastContainer');
+    function showToast(msg) {
+      const div = document.createElement('div'); div.className = 'toast'; div.textContent = msg;
+      toastContainer.appendChild(div);
+      setTimeout(() => div.remove(), 5000);
+    }
 
-    btnLogs.onclick = () => {
-      btnLogs.classList.add('active'); btnAnalytics.classList.remove('active');
-      sectionLogs.classList.remove('hidden'); sectionAnalytics.classList.add('hidden');
-    };
-    btnAnalytics.onclick = () => {
-      btnAnalytics.classList.add('active'); btnLogs.classList.remove('active');
-      sectionAnalytics.classList.remove('hidden'); sectionLogs.classList.add('hidden');
-      loadAnalytics();
-    };
+    let lastAlertId = 0;
+    async function pollAlerts() {
+      try {
+        const res = await fetch('/alerts'); if (!res.ok) return;
+        const alerts = await res.json();
+        let newCount = 0;
+        alerts.forEach(a => {
+          if (a.id > lastAlertId) {
+            showToast(`Alerte: Règle#${a.rule_id} ${a.channel}#${a.event_id} ×${a.count}`);
+            newCount++;
+          }
+        });
+        if (alerts.length) lastAlertId = alerts[0].id;
+        const badge = document.getElementById('alertsBadge');
+        badge.textContent = newCount; badge.style.display = newCount ? 'inline-block' : 'none';
+      } catch (e) { console.error(e); }
+    }
+    setInterval(pollAlerts, 15000);
 
-    searchBtn.addEventListener('click', () => {
-      currentSearchField = searchField.value;
-      currentSearchValue = searchInput.value.trim();
-      page = 1;
-      renderLogs();
-    });
-    clearSearchBtn.addEventListener('click', () => {
-      currentSearchField = null;
-      currentSearchValue = null;
-      searchInput.value = '';
-      page = 1;
-      renderLogs();
-    });
-
+    // --- Logs ---
+    let page = 1, limit = 100, currentSearchField = null, currentSearchValue = null;
     async function fetchLogs() {
       const off = (page - 1) * limit;
       const params = new URLSearchParams({ limit, offset: off });
@@ -202,59 +406,90 @@
         params.set('searchField', currentSearchField);
         params.set('searchValue', currentSearchValue);
       }
-      const res  = await fetch(`/data?${params.toString()}`);
+      const res = await fetch(`/data?${params.toString()}`);
       const json = await res.json();
       return json.events;
     }
-
     async function renderLogs() {
       const data = await fetchLogs();
       const tbody = document.getElementById('logsBody'); tbody.innerHTML = '';
       data.forEach(log => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${new Date(log.time).toLocaleString()}</td>
-          <td>${log.computer}</td>
-          <td>${log.event_id}</td>
-          <td>${log.channel}</td>
-          <td>${log.level}</td>
-        `;
+        tr.innerHTML = `<td>${new Date(log.time).toLocaleString()}</td><td>${log.computer}</td><td>${log.event_id}</td><td>${log.channel}</td><td>${log.level}</td>`;
         tbody.appendChild(tr);
       });
       document.getElementById('pageInfo').textContent = `Page ${page}`;
     }
-
-    document.getElementById('prevPage').onclick = () => { if (page > 1) { page--; renderLogs(); }};
+    document.getElementById('prevPage').onclick = () => { if (page > 1) { page--; renderLogs(); } };
     document.getElementById('nextPage').onclick = () => { page++; renderLogs(); };
+    document.getElementById('searchBtn').onclick = () => {
+      currentSearchField = document.getElementById('searchField').value;
+      currentSearchValue = document.getElementById('searchInput').value.trim();
+      page = 1; renderLogs();
+    };
+    document.getElementById('clearSearchBtn').onclick = () => {
+      currentSearchField = null; currentSearchValue = null; document.getElementById('searchInput').value = ''; page = 1; renderLogs();
+    };
 
-    // Analytics
+    // --- Analytics & Alerts ---
     let trendChart, barChart;
+    async function loadAlerts() {
+      const res = await fetch('/alerts'); if (!res.ok) return;
+      const alerts = await res.json();
+      const tbody = document.getElementById('alertsBody'); tbody.innerHTML = '';
+      alerts.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${a.rule_id}</td><td>${a.channel}</td><td>${a.event_id}</td><td>${a.count}</td><td>${new Date(a.triggered_at).toLocaleString()}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
     async function loadAnalytics() {
       const data = await fetchLogs();
-      const total = data.length;
-      const errors = data.filter(l => l.level == 1).length;
-      const warns  = data.filter(l => l.level == 2).length;
-      document.getElementById('totalLogs').textContent = total;
-      document.getElementById('errorCount').textContent = errors;
-      document.getElementById('warnCount').textContent = warns;
-
+      document.getElementById('totalLogs').textContent = data.length;
+      document.getElementById('errorCount').textContent = data.filter(l => l.level == 1).length;
+      document.getElementById('warnCount').textContent = data.filter(l => l.level == 2).length;
       const times = data.map(l => new Date(l.time).toLocaleTimeString());
       if (trendChart) trendChart.destroy();
-      trendChart = new Chart(
-        document.getElementById('trendChart'),
-        { type: 'line', data: { labels: times, datasets: [{ label: 'Events over time', data: data.map((_,i) => i+1), tension: 0.3 }] }, options: { responsive: true } }
-      );
+      trendChart = new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: { labels: times, datasets: [{ label: 'Events over time', data: data.map((_, i) => i + 1), tension: 0.3 }] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
       if (barChart) barChart.destroy();
-      const byHost = {};
-      data.forEach(l => byHost[l.computer] = (byHost[l.computer] || 0) + 1);
-      barChart = new Chart(
-        document.getElementById('barChart'),
-        { type: 'bar', data: { labels: Object.keys(byHost), datasets: [{ label: 'Events by host', data: Object.values(byHost) }] }, options: { responsive: true } }
-      );
+      const byHost = {}; data.forEach(l => byHost[l.computer] = (byHost[l.computer] || 0) + 1);
+      barChart = new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: { labels: Object.keys(byHost), datasets: [{ label: 'Events by host', data: Object.values(byHost) }] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+      await loadAlerts();
     }
 
-    // Initial
+    // --- Rules ---
+    let rules = [];
+    async function loadRules() {
+      const res = await fetch('/rules'); rules = await res.json(); renderRules();
+    }
+    function renderRules() {
+      const list = document.getElementById('rulesList'); list.innerHTML = '';
+      if (rules.length === 0) { list.innerHTML = '<p>Aucune règle définie.</p>'; return; }
+      rules.forEach(r => {
+        const div = document.createElement('div'); div.className = 'rule-item';
+        div.innerHTML = `<span>${r.channel} - Event ID ${r.event_id} > ${r.threshold} fois en ${r.window_min}min</span><button data-id="${r.id}">✕</button>`;
+        list.appendChild(div);
+      });
+      list.querySelectorAll('button').forEach(btn => btn.onclick = async () => { const id = btn.dataset.id; await fetch(`/rules?id=${id}`, { method: 'DELETE' }); await loadRules(); });
+    }
+    document.getElementById('ruleForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const payload = { channel: document.getElementById('ruleChannel').value, event_id: parseInt(document.getElementById('ruleEventId').value, 10), threshold: parseInt(document.getElementById('ruleThreshold').value, 10), window_min: parseInt(document.getElementById('ruleWindow').value, 10) };
+      await fetch('/rules', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      await loadRules(); e.target.reset();
+    });
+
+    // Initial render
     renderLogs();
   </script>
 </body>
+
 </html>

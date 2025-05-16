@@ -4,9 +4,14 @@ from .database_service import DatabaseService
 from .db_writer import DBWriter
 from .backlog_agent import BacklogAgent
 from .tail_agent import TailAgent
+from .rules_engine import evaluate_rules
 
 __all__ = [
     "LogAgent",
     "DatabaseService",
     "DBWriter",
+    "BacklogAgent",
+    "TailAgent",
+    "evaluate_rules",
+    "RulesService",
 ]

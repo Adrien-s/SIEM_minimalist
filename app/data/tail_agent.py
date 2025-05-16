@@ -27,7 +27,7 @@ class TailAgent(threading.Thread):
             if events:
                 for evt in events:
                     rec = {
-                        "time":     evt.TimeGenerated.Format(),
+                        "time":     evt.TimeGenerated.isoformat()   ,
                         "computer": evt.SourceName,
                         "event_id": evt.EventID & 0xFFFF,
                         "channel":  self.channel,

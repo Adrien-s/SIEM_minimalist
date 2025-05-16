@@ -3,12 +3,15 @@ import os
 import signal
 import sys
 import logging
+import threading
+import time
 from queue import Queue
 
 from data.database import init_db
 from data.backlog_agent   import BacklogAgent
 from data.tail_agent      import TailAgent
 from data.db_writer  import DBWriter
+from data.rules_engine    import evaluate_rules
 from dashboard.server import run_server
 
 #Nom des canal Windows à surveiller
@@ -55,6 +58,14 @@ def main():
         ta.start()
         tail_agents.append(ta)
         logging.info("TailAgent démarré sur canal %s.", chan)
+
+    def rules_loop():
+        while True:
+            evaluate_rules(db_conn)
+            time.sleep(60)
+
+    threading.Thread(target=rules_loop, daemon=True).start()
+    logging.info("Rules engine démarré (interval 60s).")
 
     #arrêt propre ctrl+c
     def shutdown(sig, frame):

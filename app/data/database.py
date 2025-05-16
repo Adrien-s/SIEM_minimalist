@@ -8,8 +8,7 @@ def init_db(db_path: str) -> sqlite3.Connection:
 
     #Réduit la synchronisation disque pour moins de fsync
     conn.execute("PRAGMA synchronous = NORMAL;")
-
-    #Crée la table logs si nécessaire
+    
     conn.execute("""
       CREATE TABLE IF NOT EXISTS logs (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,6 +28,26 @@ def init_db(db_path: str) -> sqlite3.Connection:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_logs_time      ON logs(time);")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_logs_event_id  ON logs(event_id);")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_logs_level     ON logs(level);")
+    # 4) Nouvelle table “rules”
+    conn.execute("""
+      CREATE TABLE IF NOT EXISTS rules (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        channel      TEXT    NOT NULL,
+        event_id     INTEGER NOT NULL,
+        threshold    INTEGER NOT NULL,
+        window_min   INTEGER NOT NULL,
+        last_checked TEXT
+      );
+    """)
+
+    conn.execute("""
+      CREATE TABLE IF NOT EXISTS alerts (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        rule_id      INTEGER NOT NULL,
+        triggered_at TEXT    NOT NULL,
+        count        INTEGER NOT NULL
+      );
+    """)
     conn.commit()
     return conn
 
@@ -48,9 +67,11 @@ def insert_log(dbinitialisation, log):
     ))
     dbinitialisation.commit()
 
-def query_logs(dbinitialisation, limit=None, offset=None, **filters):
+def query_logs(conn, limit=None, offset=None, **filters):
     query = "SELECT * FROM logs WHERE 1=1"
     params = []
+
+    # filtres existants
     for field, val in filters.items():
         if isinstance(val, str) and ('%' in val or '_' in val):
             query += f" AND {field} LIKE ?"
@@ -58,19 +79,23 @@ def query_logs(dbinitialisation, limit=None, offset=None, **filters):
             query += f" AND {field} = ?"
         params.append(val)
 
+    # ordonner du plus récent au plus ancien
+    query += " ORDER BY time DESC"
 
-    cursor = dbinitialisation.cursor()
-    cursor.execute(query, params)
+    # pagination
+    if limit is not None:
+        query += " LIMIT ?"
+        params.append(limit)
+    if offset is not None:
+        query += " OFFSET ?"
+        params.append(offset)
 
-    # Récupère les noms de colonne
-    col_names = [desc[0] for desc in cursor.description]
-    rows = cursor.fetchall()
+    cur = conn.cursor()
+    cur.execute(query, params)
 
-    #Pour chaque ligne, créer un dict
-    results = []
-    for row in rows:
-        # si c'est déjà un Row, on peut aussi faire row[col] mais zip marche pour les deux
-        results.append(dict(zip(col_names, row)))
-    return results
+    col_names = [d[0] for d in cur.description]
+    rows = cur.fetchall()
+    return [dict(zip(col_names, row)) for row in rows]
+
 
 
