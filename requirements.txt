@@ -1,0 +1,5 @@
+# Accès aux journaux Windows
+pywin32
+
+# Pour lancer les tests unitaires
+pytest
