@@ -6,7 +6,8 @@ from urllib.parse import urlparse, parse_qs
 from data import database
 from data.rules_service    import list_rules, add_rule, update_rule, delete_rule
 from data.event_service    import list_event_definitions
-from data.database import init_db
+from datetime import datetime
+
 
 def run_server(db_conn):
     PORT = 8000
@@ -36,6 +37,9 @@ def run_server(db_conn):
                 search_field = qs.get('searchField', [None])[0]
                 search_value = qs.get('searchValue', [None])[0]
 
+                start_time = qs.get("startTime", [None])[0]
+                end_time   = qs.get("endTime",   [None])[0]
+
                 # Récupération des logs avec pagination
                 filters = {}
                 if search_field and search_value:
@@ -43,7 +47,14 @@ def run_server(db_conn):
                     filters[search_field] = f"%{search_value}%"
                     
                 # On modifie query_logs pour traiter LIKE si la valeur contient '%' ou '=' sinon exact
-                logs = database.query_logs(db_conn, limit=limit, offset=offset, **filters)
+                logs = database.query_logs(
+                    db_conn,
+                    limit=limit,
+                    offset=offset,
+                    start_time=start_time,
+                    end_time=end_time,
+                    **filters
+                )
                 response = {"events": logs}
                 json_data = json.dumps(response)
                 self.send_response(200)
@@ -79,6 +90,44 @@ def run_server(db_conn):
                 self.send_header('Content-Type','application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps(defs).encode())
+            
+            elif parsed_url.path == '/analytics':
+                qs = parse_qs(parsed_url.query)
+                raw_start = qs.get("startTime", [None])[0]
+                raw_end   = qs.get("endTime",   [None])[0]
+
+                filters = {}
+                sf = qs.get('searchField', [None])[0]
+                sv = qs.get('searchValue', [None])[0]
+
+                if sf and sv:
+                    #
+                    filters[sf] = f"%{sv}%"
+
+                # Récupérer d’abord tous les logs (sans LIMIT ni filtre date)
+                logs_all = database.query_logs(db_conn, **filters)
+
+                # Filtrer ensuite en Python
+                if raw_start and raw_end:
+                    # JS envoie "…Z", on l'enlève pour fromisoformat()
+                    st = datetime.fromisoformat(raw_start.rstrip('Z'))
+                    ed = datetime.fromisoformat(raw_end.rstrip('Z'))
+                    logs = [
+                        log for log in logs_all
+                        if st <= datetime.fromisoformat(log['time']) <= ed
+                    ]
+                else:
+                    logs = logs_all
+
+                # Debug
+                print(f"DEBUG /analytics start={raw_start} end={raw_end}")
+                print("DEBUG  nb logs avant envoi:", len(logs))
+
+                # Envoi de la réponse
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"events": logs}).encode())
                 
                 
             else:

@@ -81,9 +81,17 @@ def insert_log(dbinitialisation, log):
     ))
     dbinitialisation.commit()
 
-def query_logs(conn, limit=None, offset=None, **filters):
+def query_logs(conn, limit=None, offset=None, start_time=None, end_time=None, **filters):
     query = "SELECT * FROM logs WHERE 1=1"
     params = []
+
+    # Filtrage temporel
+    if start_time:
+        query  += " AND time >= ?"
+        params.append(start_time)
+    if end_time:
+        query  += " AND time <= ?"
+        params.append(end_time)
 
     # filtres existants
     for field, val in filters.items():

@@ -322,6 +322,14 @@
     <!-- Section Analytics -->
     <section id="sectionAnalytics" class="hidden">
       <div class="cards">
+        <div class="controls">
+          <label for="timeRangeSelect">Période :</label>
+          <select id="timeRangeSelect">
+            <option value="60">Dernière heure</option>
+            <option value="120">Dernières 2 heures</option>
+            <option value="1440">Dernières 24 heures</option>
+          </select>
+        </div>
         <div class="card">
           <h3>Total Logs</h3>
           <p id="totalLogs">--</p>
@@ -387,6 +395,25 @@
   <div id="toastContainer"></div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    // Variables tests
+    let timeRangeMin = 60;            // 1h par défaut à l’ouverture
+    const select = document.getElementById('timeRangeSelect');
+    select.value = timeRangeMin;
+
+    function toLocalIso(d) {
+      const pad2 = n => String(n).padStart(2,'0');
+      const pad3 = n => String(n).padStart(3,'0');
+      return (
+        d.getFullYear() + '-' +
+        pad2(d.getMonth()+1) + '-' +
+        pad2(d.getDate()) + 'T' +
+        pad2(d.getHours())   + ':' +
+        pad2(d.getMinutes()) + ':' +
+        pad2(d.getSeconds()) + '.' +
+        pad3(d.getMilliseconds())
+      );
+    }
+
     // Navigation
     const btnLogs = document.getElementById('btnLogs');
     const btnAnalytics = document.getElementById('btnAnalytics');
@@ -445,12 +472,18 @@
       defs.forEach(d => eventDefs[d.event_id] = d);
     }
     loadDefinitions();
-    async function fetchLogs() {
+    async function fetchLogs(rangeMin = 0) {
       const off = (page - 1) * limit;
       const params = new URLSearchParams({ limit, offset: off });
       if (currentSearchField && currentSearchValue) {
         params.set('searchField', currentSearchField);
         params.set('searchValue', currentSearchValue);
+      }
+      if (rangeMin > 0) {
+        const endIso   = new Date().toISOString();
+        const startIso = new Date(Date.now() - rangeMin * 60000).toISOString();
+        params.set('startTime', startIso);
+        params.set('endTime', endIso);
       }
       const res = await fetch(`/data?${params.toString()}`);
       const json = await res.json();
@@ -523,6 +556,13 @@
     };
 
     // --- Analytics & Alerts ---
+    timeRangeSelect.onchange = () => {
+      timeRangeMin = parseInt(timeRangeSelect.value, 10);
+      if (!sectionAnalytics.classList.contains('hidden')) {
+        loadAnalytics();  // recharge les graphiques si on est sur Analyses
+      }
+    };
+
     let trendChart, barChart;
     async function loadAlerts() {
       const res = await fetch('/alerts'); if (!res.ok) return;
@@ -546,8 +586,24 @@
         tbody.appendChild(tr);
       });
     }
+    
     async function loadAnalytics() {
-      const data = await fetchLogs();
+      const nowLocal   = new Date();
+      const startLocal = new Date(nowLocal.getTime() - timeRangeMin * 60000);
+
+
+      const start = toLocalIso(startLocal);
+      const end   = toLocalIso(nowLocal);
+
+      const url = `/analytics?startTime=${encodeURIComponent(start)}&endTime=${encodeURIComponent(end)}`;
+      console.log("Fetching analytics:", url);
+
+      const resp = await fetch(url);
+      const { events } = await resp.json();
+      console.log("Got events:", events.length);
+
+      const res  = await fetch(url);
+      const data = (await res.json()).events;
       document.getElementById('totalLogs').textContent = data.length;
       document.getElementById('errorCount').textContent = data.filter(l => l.level == 1).length;
       document.getElementById('warnCount').textContent = data.filter(l => l.level == 2).length;

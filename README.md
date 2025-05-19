@@ -19,12 +19,13 @@ SIEM_minimalist/
 │   ├── dashboard/            # Dashboard web (template HTML/CSS/JS et serveur)
 │   └── main.py               # Point d’entrée (initialisation et lancement)
 ├── tests/                    # Tests unitaires avec pytest
-├── docs/                     # Livrables PDF (L1, L2, rapport final)
-├── requirements.txt          # Dépendances Python
-└── README.md                 # Ce fichier
+├── docs/                     # Livrables PDF (L1, L2, L3)
+├── requirements.txt          # Dépendances Python obligatoires
+└── README.md                 # README
 
 ## Prérequis
 
+* Windows 11
 * Python 3.9 ou supérieur
 * pip pour installer les dépendances
 * Accès administrateur sous Windows pour lire les journaux d’événements
@@ -37,7 +38,7 @@ SIEM_minimalist/
 
    ```bash
    git clone https://github.com/Adrien-s/SIEM_minimalist.git
-   cd SIEM_minimalist
+   cd \SIEM_minimalist\app
    ```
 2 Installer les dépendances :
 
@@ -56,7 +57,7 @@ Depuis la racine du projet :
 ```bash 
 cd SIEM_minimalist/app 
 
-python /main.py
+python3 /main.py
 ```
 
 Le dashboard est alors accessible sur : `http://localhost:8000`
