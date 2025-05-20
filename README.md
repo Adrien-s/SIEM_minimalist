@@ -106,4 +106,4 @@ Les tests couvrent :
 
 ---
 
-*Dernière mise à jour : 2025-05-17*
+*Dernière mise à jour : 20-05-2025*
